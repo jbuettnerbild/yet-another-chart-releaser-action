@@ -22,6 +22,9 @@ inputs:
     description: "Save a copy of the package files to the GitHub pages branch and reference them in the index"
     default: "false"
     required: false
+  changed_charts:
+    description: "A list of changed charts to release"
+    required: false
 runs:
   using: composite
   steps:
@@ -43,6 +46,10 @@ runs:
 
         if [[ -n "${{ inputs.charts_repo_url }}" ]]; then
             args+=(--charts-repo-url "${{ inputs.charts_repo_url }}")
+        fi
+        
+        if [[ -n "${{ inputs.changed_charts }}" ]]; then
+            args+=(--changed-charts "${{ inputs.changed_charts }}")
         fi
 
         "$GITHUB_ACTION_PATH/yacr.sh" "${args[@]}"
