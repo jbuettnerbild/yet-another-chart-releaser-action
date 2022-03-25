@@ -32,6 +32,7 @@ Usage: $(basename "$0") <options>
     -o, --owner                The repo owner
     -r, --repo                 The repo name
     -p, --packages-with-index  Save a copy of the package files to the GitHub pages branch and reference them in the index
+    -c, --changed-charts       A list of changed charts to release
     
 EOF
 }
@@ -43,6 +44,7 @@ main() {
     local owner=
     local repo=
     local charts_repo_url=
+    local changed_charts=()
 
     parse_command_line "$@"
 
@@ -52,13 +54,13 @@ main() {
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
 
-    echo 'Looking up latest tag...'
-    local latest_tag
-    latest_tag=$(lookup_latest_tag)
-
-    echo "Discovering changed charts since '$latest_tag'..."
-    local changed_charts=()
-    readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+   if [[ -z "$changed_charts" ]]; then
+      echo 'Looking up latest tag...'
+      local latest_tag
+      latest_tag=$(lookup_latest_tag)
+      echo "Discovering changed charts since '$latest_tag'..."
+      readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+   fi
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
@@ -70,6 +72,7 @@ main() {
         mkdir -p .yacr-index
 
         for chart in "${changed_charts[@]}"; do
+          echo "$chart"
             if [[ -d "$chart" ]]; then
                 package_chart "$chart"
             else
@@ -159,6 +162,16 @@ parse_command_line() {
                     shift
                 else
                     echo "ERROR: '-p|--packages-with-index' cannot be empty." >&2
+                    show_help
+                    exit 1
+                fi
+                ;;
+            -c|--changed-charts)
+                if [[ -n "${2:-}" ]]; then
+                    changed_charts="$2"
+                    shift
+                else
+                    echo "ERROR: '-c|--changed-charts' cannot be empty." >&2
                     show_help
                     exit 1
                 fi
