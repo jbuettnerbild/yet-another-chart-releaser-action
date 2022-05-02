@@ -54,13 +54,13 @@ main() {
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
 
-   if [[ -z "$changed_charts" ]]; then
-      echo 'Looking up latest tag...'
-      local latest_tag
-      latest_tag=$(lookup_latest_tag)
-      echo "Discovering changed charts since '$latest_tag'..."
-      readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
-   fi
+    if [[ -z "$changed_charts" ]]; then
+        echo 'Looking up latest tag...'
+        local latest_tag
+        latest_tag=$(lookup_latest_tag)
+        echo "Discovering changed charts since '$latest_tag'..."
+        readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+    fi
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
@@ -71,7 +71,7 @@ main() {
         rm -rf .yacr-index
         mkdir -p .yacr-index
 
-        for chart in "${changed_charts[@]}"; do
+        for chart in ${changed_charts[@]}; do
           echo "$chart"
             if [[ -d "$chart" ]]; then
                 package_chart "$chart"
